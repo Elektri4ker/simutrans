@@ -4305,7 +4305,7 @@ void vehicle_t::try_unblock_way() {
     vehicle_base_t *obj = no_cars_blocking( gr, cnv, curr_direction, next_direction, next_90direction );
 
     int ct = 0;
-    while (!obj && ct < 4) {
+    while (!obj && ct < 4 && test_index < r.get_count()) {
 
         gr = welt->lookup(r.at(test_index));
         curr_direction   = next_direction;
@@ -4326,7 +4326,9 @@ void vehicle_t::try_unblock_way() {
         }
 
         ct++;
+        test_index++;
     }
+
 
     vehicle_t *v = obj_cast<vehicle_t>(obj);
 
