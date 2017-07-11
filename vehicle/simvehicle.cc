@@ -754,12 +754,19 @@ uint16 vehicle_t::load_cargo(halthandle_t halt, const vector_tpl<halthandle_t>& 
 	const uint16 capacity_left = desc->get_capacity() - total_freight;
 	if (capacity_left > 0) {
 
+        const char* convoi_name = cnv ? cnv->get_name() : "";
+        const char* line_name = cnv && cnv->get_line().is_bound() ? cnv->get_line()->get_name() : "";
+        bool load_nearest_first = false;
+        if (    (strlen(convoi_name) && convoi_name[strlen(convoi_name)-1] == '!') ||
+                (strlen(line_name) && line_name[strlen(line_name)-1] == '!'))
+            load_nearest_first = true;
+
 		slist_tpl<ware_t> freight_add;
-		halt->fetch_goods( freight_add, desc->get_freight_type(), capacity_left, destination_halts);
+        halt->fetch_goods( freight_add, desc->get_freight_type(), capacity_left, destination_halts, load_nearest_first);
 
 		if(  freight_add.empty()  ) {
 			// now empty, but usually, we can get it here ...
-			return 0;
+            return 0;
 		}
 
 		for(  slist_tpl<ware_t>::iterator iter_z = freight_add.begin();  iter_z != freight_add.end();  ) {

@@ -1873,7 +1873,7 @@ bool haltestelle_t::recall_ware( ware_t& w, uint32 menge )
 
 
 
-void haltestelle_t::fetch_goods( slist_tpl<ware_t> &load, const goods_desc_t *good_category, uint32 requested_amount, const vector_tpl<halthandle_t>& destination_halts)
+void haltestelle_t::fetch_goods( slist_tpl<ware_t> &load, const goods_desc_t *good_category, uint32 requested_amount, const vector_tpl<halthandle_t>& destination_halts, bool load_nearest_first)
 {
 	// prissi: first iterate over the next stop, then over the ware
 	// might be a little slower, but ensures that passengers to nearest stop are served first
@@ -1881,8 +1881,18 @@ void haltestelle_t::fetch_goods( slist_tpl<ware_t> &load, const goods_desc_t *go
 	vector_tpl<ware_t> *warray = cargo[good_category->get_catg_index()];
 
 	if(  warray  &&  !warray->empty()  ) {
-		for(  uint32 i=0; i < destination_halts.get_count();  i++  ) {
-			halthandle_t plan_halt = destination_halts[i];
+        //remove duplicated halts
+        vector_tpl<halthandle_t> halts_remove_dup(destination_halts.get_count());
+        for (uint32 i = 0; i < destination_halts.get_count(); i++) {
+            halthandle_t halt = destination_halts[i];
+            halts_remove_dup.append_unique(halt);
+        }
+
+        for(  uint32 i = 0; i < halts_remove_dup.get_count(); i++  ) {
+            sint32 ind = load_nearest_first ? i : halts_remove_dup.get_count() - 1 - i;
+            halthandle_t plan_halt = halts_remove_dup[ind];
+
+            dbg->message("tt", "halt %s\n", plan_halt->get_name());
 
 				// The random offset will ensure that all goods have an equal chance to be loaded.
 				uint32 offset = simrand(warray->get_count());
